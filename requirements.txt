@@ -1,3 +1,6 @@
 streamlit
 plotly
 folium
+matplotlib
+seaborn
+streamlit_folium
