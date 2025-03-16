@@ -4,3 +4,8 @@ folium
 matplotlib
 seaborn
 streamlit_folium
+folium_static                              
+sklearn.linear_model 
+LinearRegression                       
+plotly.express                                              
+plotly.graph_objects
