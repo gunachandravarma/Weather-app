@@ -1,11 +1,10 @@
 streamlit
-plotly
-folium
+numpy
+pandas
+requests
 matplotlib
 seaborn
+folium
 streamlit_folium
-folium_static                              
-sklearn.linear_model 
-LinearRegression                       
-plotly.express                                              
-plotly.graph_objects
+scikit-learn
+plotly
