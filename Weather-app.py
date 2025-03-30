@@ -94,40 +94,80 @@ if st.sidebar.button("Fetch Weather 🌤️"):
                     if 'daily' in forecast_response:
                         dates = [dt.datetime.utcfromtimestamp(day['dt']).strftime('%Y-%m-%d') for day in forecast_response['daily']]
                         temps = [day['temp']['day'] for day in forecast_response['daily']]
-                        df_forecast = pd.DataFrame({'Date': dates, 'Temperature (°C)': temps})
+                        humidity_levels = [day['humidity'] for day in forecast_response['daily']]
+                        wind_speeds = [day['wind_speed'] for day in forecast_response['daily']]
+                        
+                        df_forecast = pd.DataFrame({'Date': dates, 'Temperature (°C)': temps, 'Humidity (%)': humidity_levels, 'Wind Speed (m/s)': wind_speeds})
+                        
+                        # Temperature Forecast Line Chart
                         fig = px.line(df_forecast, x='Date', y='Temperature (°C)', title='Temperature Forecast')
                         st.plotly_chart(fig)
-
-                      # Predict next temperature trend using Linear Regression
-                    X = np.array(range(len(temps))).reshape(-1, 1)
-                    y = np.array(temps).reshape(-1, 1)
-                    model = LinearRegression()
-                    model.fit(X, y)
-                    future_days = np.array(range(len(temps), len(temps) + 3)).reshape(-1, 1)
-                    predicted_temps = model.predict(future_days)
-
-                    st.subheader("🔮 Predicted Temperature for Next 3 Days")
-                    for i, temp in enumerate(predicted_temps.flatten()):
-                        st.write(f"Day {i+1}: {temp:.2f}°C")
+                        
+                        # Predict next temperature trend using Linear Regression
+                        X = np.array(range(len(temps))).reshape(-1, 1)
+                        y = np.array(temps).reshape(-1, 1)
+                        model = LinearRegression()
+                        model.fit(X, y)
+                        future_days = np.array(range(len(temps), len(temps) + 3)).reshape(-1, 1)
+                        predicted_temps = model.predict(future_days)
+                        
+                        st.subheader("🔮 Predicted Temperature for Next 3 Days")
+                        for i, temp in enumerate(predicted_temps.flatten()):
+                            st.write(f"Day {i+1}: {temp:.2f}°C")
+                        
+                        # Humidity Forecast Line Chart
+                        fig = px.line(df_forecast, x='Date', y='Humidity (%)', title='Humidity Forecast')
+                        st.plotly_chart(fig)
+                        
+                        # Wind Speed Forecast Line Chart
+                        fig = px.line(df_forecast, x='Date', y='Wind Speed (m/s)', title='Wind Speed Forecast')
+                        st.plotly_chart(fig)
+                        
+                        # Combined Forecast Chart
+                        fig = px.line(df_forecast, x='Date', y=['Temperature (°C)', 'Humidity (%)', 'Wind Speed (m/s)'],
+                                      title='Combined Weather Forecast')
+                        st.plotly_chart(fig)
+                        
+                        # Box Plot for Forecasted Weather Parameters
+                        forecast_melted = df_forecast.melt(id_vars='Date', var_name='Metric', value_name='Value')
+                        fig = px.box(forecast_melted, x='Metric', y='Value', title='Box Plot of Forecasted Weather Parameters')
+                        st.plotly_chart(fig)
+                        
+                        # Scatter Plot for Temperature vs Humidity
+                        fig = px.scatter(df_forecast, x='Temperature (°C)', y='Humidity (%)', 
+                                         title='Temperature vs Humidity', trendline='ols')
+                        st.plotly_chart(fig)
 
                 with tab2:
-                    st.subheader("📊 Heatmap of Temperature Trends")
+                    st.subheader("📊 Weather Data Analysis")
+
+                    #st.subheader("📊 Heatmap of Temperature Trends")
                     if 'daily' in forecast_response:
                         temp_matrix = np.array([day['temp']['day'] for day in forecast_response['daily']]).reshape(-1, 1)
                         fig = px.imshow(temp_matrix, color_continuous_scale='Viridis', title='Heatmap of Temperature Variations')
                         st.plotly_chart(fig)
-
-                    st.subheader("📊 Box Plot for Weather Metrics")
-                    weather_df = pd.DataFrame({
-                        "Metric": ["Temperature", "Feels Like", "Humidity", "Wind Speed"],
-                        "Value": [temp_celsius, feels_like_celsius, humidity, wind_speed]
-                    })
-                    fig = px.box(weather_df, y='Value', x='Metric', title='Box Plot for Weather Metrics')
-                    st.plotly_chart(fig)
-
-                    st.subheader("📊 Histogram for Temperature Distribution")
+                    
+                    # Histogram for Temperature Distribution
                     fig = px.histogram(df_forecast, x='Temperature (°C)', nbins=10, title='Temperature Distribution')
                     st.plotly_chart(fig)
+                    
+                    # Box Plot for Temperature, Humidity, Wind Speed, and Pressure
+                    fig = px.box(df_forecast.melt(id_vars='Date', var_name='Metric', value_name='Value'), x='Metric', y='Value', title='Box Plot of Weather Metrics')
+                    st.plotly_chart(fig)
+                    
+                    # Correlation Heatmap for Weather Metrics
+                    corr_matrix = df_forecast.drop(columns=['Date']).corr()
+                    fig = px.imshow(corr_matrix, text_auto=True, color_continuous_scale='RdBu_r', title='Correlation Heatmap')
+                    st.plotly_chart(fig)
+                    
+                    # Line Chart for Temperature Trends
+                    fig = px.line(df_forecast, x='Date', y='Temperature (°C)', title='Temperature Trends Over Time')
+                    st.plotly_chart(fig)
+                    
+                    # Scatter Plot for Temperature vs Wind Speed
+                    fig = px.scatter(df_forecast, x='Temperature (°C)', y='Wind Speed (m/s)', title='Temperature vs Wind Speed', trendline='ols')
+                    st.plotly_chart(fig)
+                   
 
                 with tab3:
                     if comp_lat and comp_lon:
@@ -135,18 +175,57 @@ if st.sidebar.button("Fetch Weather 🌤️"):
                         comp_response = requests.get(comp_url).json()
                         comp_temp = comp_response['main']['temp'] - 273.15
                         comp_humidity = comp_response['main']['humidity']
-
+                        comp_wind_speed = comp_response['wind']['speed']
+                        
+                        # Data for comparison
                         comp_df = pd.DataFrame({
                             "City": [city, comparison_city],
                             "Temperature (°C)": [temp_celsius, comp_temp],
-                            "Humidity (%)": [humidity, comp_humidity]
+                            "Humidity (%)": [humidity, comp_humidity],
+                            "Wind Speed (m/s)": [wind_speed, comp_wind_speed]
                         })
-                        fig = px.bar(comp_df, x='City', y=['Temperature (°C)', 'Humidity (%)'], barmode='group', title='City Weather Comparison')
+                        
+                        # Bar Chart Comparison
+                        fig = px.bar(comp_df, x='City', y=['Temperature (°C)', 'Humidity (%)', 'Wind Speed (m/s)'], 
+                                     barmode='group', title='City Weather Comparison')
                         st.plotly_chart(fig)
+                        
+                        # Temperature Trend Line Chart
+                        if 'daily' in forecast_response and 'daily' in comp_response:
+                            comp_temps = [day['temp']['day'] for day in forecast_response['daily']]
+                            comp_dates = [dt.datetime.utcfromtimestamp(day['dt']).strftime('%Y-%m-%d') for day in forecast_response['daily']]
+                            df_comparison = pd.DataFrame({
+                                'Date': comp_dates,
+                                f'{city} Temperature (°C)': temps,
+                                f'{comparison_city} Temperature (°C)': comp_temps
+                            })
+                            fig = px.line(df_comparison, x='Date', y=[f'{city} Temperature (°C)', f'{comparison_city} Temperature (°C)'],
+                                          title='Temperature Trend Comparison')
+                            st.plotly_chart(fig)
+                        
+                        # Box Plot Comparison
+                        fig = px.box(comp_df.melt(id_vars='City', var_name='Metric', value_name='Value'), 
+                                     x='Metric', y='Value', color='City',
+                                     title='Box Plot Comparison of Weather Metrics')
+                        st.plotly_chart(fig)
+                        
+                        # Radar Chart for Weather Metrics
+                        categories = ['Temperature (°C)', 'Humidity (%)', 'Wind Speed (m/s)']
+                        radar_fig = go.Figure()
+                        
+                        for i, city_name in enumerate([city, comparison_city]):
+                            radar_fig.add_trace(go.Scatterpolar(
+                                r=comp_df.iloc[i, 1:].values,
+                                theta=categories,
+                                fill='toself',
+                                name=city_name
+                            ))
+                        
+                        radar_fig.update_layout(polar=dict(radialaxis=dict(visible=True)),
+                                                title='Radar Chart of Weather Parameters')
+                        st.plotly_chart(radar_fig)
                     else:
                         st.warning("❌ Please enter the comparison city!")
-            else:
-                st.error("❌ City not found! Please enter a valid city name.")
         else:
             st.error("❌ Unable to get location coordinates!")
     except requests.exceptions.RequestException as e:
