@@ -9,3 +9,4 @@ streamlit_folium
 scikit-learn
 plotly
 statsmodels
+folium.plugins
