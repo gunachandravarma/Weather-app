@@ -309,7 +309,3 @@ if st.sidebar.button("Fetch Weather 🌤️"):
             st.error("❌ Unable to get location coordinates!")
     except requests.exceptions.RequestException as e:
         st.error(f"⚠️ Network error: {e}")
-        else:
-            st.error("❌ Unable to get location coordinates!")
-    except requests.exceptions.RequestException as e:
-        st.error(f"⚠️ Network error: {e}")
