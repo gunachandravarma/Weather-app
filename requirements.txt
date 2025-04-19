@@ -8,4 +8,4 @@ folium
 streamlit-folium
 scikit-learn
 plotly
-statsmodel
+statsmodels
