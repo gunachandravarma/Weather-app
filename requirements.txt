@@ -5,11 +5,6 @@ requests
 matplotlib
 seaborn
 folium
-streamlit_folium
+streamlit-folium
 scikit-learn
 plotly
-statsmodels
-folium.plugins
-folium_static
-plotly.express
-plotly.graph_objects
