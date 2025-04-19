@@ -10,3 +10,7 @@ scikit-learn
 plotly
 statsmodels
 folium.plugins
+MarkerCluster
+folium_static
+plotly.express
+plotly.graph_objects
