@@ -22,7 +22,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.sidebar.title(":mostly_sunny: Weather Dashboard")
+st.sidebar.title("Weather Dashboard")
 st.sidebar.markdown("Enter a city name to fetch real-time weather data.")
 city = st.sidebar.text_input("🌍 Enter City Name")
 comparison_city = st.sidebar.text_input("🌍 Compare with City (Optional)")
